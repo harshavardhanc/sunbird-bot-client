@@ -1,27 +1,17 @@
 version: 2.1
+orbs:
+  node: circleci/node@1.1.6
 jobs:
-  build:
-    working_directory: ~/project
-    docker:
-      - image: node:10.13.0-jessie 
+  build-and-test:
+    executor:
+      name: node/default
     steps:
       - checkout
-      - run: npm install -g @angular/cli
-      - run: npm install
-      - run: ng build
-   
-      - run:
-          name: Publish to NPM
-          command: |
-            if [ -z $CIRCLE_PR_NUMBER ]; then 
-              npm set //registry.npmjs.org/:_authToken=$NPM_TOKEN
-              npm pack ~/project/dist/chat-lib
-              npm publish sunbird-chatbot-client-*     
-            else
-              echo "Nothing to publish!" 
-            fi
+      - node/with-cache:
+          steps:
+            - run: npm install
+            - run: npm test
 workflows:
-  version: 2.1
-  build_and_test:
-    jobs:
-      - build
+    build-and-test:
+      jobs:
+        - build-and-test
